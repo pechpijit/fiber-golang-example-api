@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
-	jwtware "github.com/gofiber/contrib/jwt"
-	"github.com/gofiber/swagger"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/pechpijit/Fiber_golang_example_api/configs"
 	_ "github.com/pechpijit/Fiber_golang_example_api/docs" // load generated docs
+	"github.com/pechpijit/Fiber_golang_example_api/middleware"
+	"github.com/pechpijit/Fiber_golang_example_api/routes"
+	routesApiV1 "github.com/pechpijit/Fiber_golang_example_api/routes/api/v1"
+	"github.com/pechpijit/Fiber_golang_example_api/service"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -35,43 +37,27 @@ var memberUser = User{
 // @in header
 // @name Authorization
 func main() {
+	app := fiber.New(configs.FiberConfig())
+
+	middleware.FiberMiddleware(app)
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error load .env file")
+		log.Fatal("Error load .env file", err)
 	}
 
-	engine := html.New("./views", ".html")
+	service.AddMockUpData()
 
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
+	routesApiV1.InitProductRouter(app)
+	routes.InitWebRouter(app)
 
-	app.Get("/swagger/*", swagger.HandlerDefault) // default
-
-	addMockUpData()
-
-	app.Post("/login", login)
-	app.Get("/", renderTemplate)
-
-	//app.Use(middleWare)
-
-	productGroup := app.Group("/products")
-	productGroup.Get("/", getProducts)
-	productGroup.Get("/:id", getProduct)
-
-	app.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
-	}))
-	productGroup.Use(middleWare)
-
-	productGroup.Post("/", createProduct)
-	productGroup.Put("/:id", updateProduct)
-	productGroup.Delete("/:id", deleteProduct)
-
-	app.Post("/uploadFile", uploadFile)
-
-	app.Get("/getEnv/:name", getEnv)
-
-	app.Listen(":3000")
+	err := app.Listen(fmt.Sprintf(
+		"%s:%s",
+		os.Getenv("SERVER_HOST"),
+		os.Getenv("SERVER_PORT"),
+	))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Handler functions
@@ -163,20 +149,4 @@ func uploadFile(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.SendString("File upload complete!")
-}
-
-func addMockUpData() {
-	products = append(products, Product{
-		ID:       1,
-		Name:     "cc_item_health",
-		Price:    500,
-		Discount: 10,
-	})
-
-	products = append(products, Product{
-		ID:       2,
-		Name:     "cc_target_farm",
-		Price:    900,
-		Discount: 15,
-	})
 }

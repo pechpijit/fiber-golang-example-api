@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -19,8 +19,24 @@ type ProductRequest struct {
 
 var products []Product
 
+func AddMockUpData() {
+	products = append(products, Product{
+		ID:       1,
+		Name:     "cc_item_health",
+		Price:    500,
+		Discount: 10,
+	})
+
+	products = append(products, Product{
+		ID:       2,
+		Name:     "cc_target_farm",
+		Price:    900,
+		Discount: 15,
+	})
+}
+
 // Handler functions
-// getProducts godoc
+// GetProducts godoc
 // @Summary Get all products
 // @Description Get details of all products
 // @Tags Products
@@ -28,12 +44,12 @@ var products []Product
 // @Produce  json
 // @Success 200 {array} Product
 // @Router /products [get]
-func getProducts(c *fiber.Ctx) error {
+func GetProducts(c *fiber.Ctx) error {
 	return c.JSON(products)
 }
 
 // Handler functions
-// getProduct godoc
+// GetProduct godoc
 // @Summary Get product by id
 // @Description Get details of product
 // @Tags Products
@@ -42,7 +58,7 @@ func getProducts(c *fiber.Ctx) error {
 // @Success 200 {object} Product
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
-func getProduct(ctx *fiber.Ctx) error {
+func GetProduct(ctx *fiber.Ctx) error {
 	productId, err := strconv.Atoi(ctx.Params("id"))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
@@ -58,7 +74,7 @@ func getProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// deleteProduct godoc
+// DeleteProduct godoc
 // @Summary Update product
 // @Description Update details of product
 // @Tags Products
@@ -68,7 +84,7 @@ func getProduct(ctx *fiber.Ctx) error {
 // @Success 204
 // @Router /products/{productId} [delete]
 // @Param productId path int true "Product id"
-func deleteProduct(ctx *fiber.Ctx) error {
+func DeleteProduct(ctx *fiber.Ctx) error {
 	productId, err := strconv.Atoi(ctx.Params("id"))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
@@ -85,7 +101,7 @@ func deleteProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// updateProduct godoc
+// UpdateProduct godoc
 // @Summary Update product
 // @Description Update details of product
 // @Tags Products
@@ -96,7 +112,7 @@ func deleteProduct(ctx *fiber.Ctx) error {
 // @Router /products/{productId} [put]
 // @Param productId path int true "Product id"
 // @Param json body ProductRequest true "Product detail"
-func updateProduct(ctx *fiber.Ctx) error {
+func UpdateProduct(ctx *fiber.Ctx) error {
 	productId, err := strconv.Atoi(ctx.Params("id"))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
@@ -119,7 +135,7 @@ func updateProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// createProduct godoc
+// CreateProduct godoc
 // @Summary Create product
 // @Description Create details of product
 // @Tags Products
@@ -129,7 +145,7 @@ func updateProduct(ctx *fiber.Ctx) error {
 // @Success 200 {object} Product
 // @Router /products [post]
 // @Param json body Product true "Product detail"
-func createProduct(ctx *fiber.Ctx) error {
+func CreateProduct(ctx *fiber.Ctx) error {
 	productNew := new(Product)
 	if err := ctx.BodyParser(productNew); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
