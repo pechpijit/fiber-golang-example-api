@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/joho/godotenv"
 	"github.com/pechpijit/Fiber_golang_example_api/configs"
 	_ "github.com/pechpijit/Fiber_golang_example_api/docs" // load generated docs
@@ -35,6 +36,7 @@ func main() {
 	}
 
 	service.AddMockUpData()
+	app.Get("/metrics", monitor.New())
 
 	routesApiV1.ProductRouter(v1)
 
