@@ -2,32 +2,21 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pechpijit/Fiber_golang_example_api/models"
 	"strconv"
 )
 
-type Product struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Price    float32 `json:"price"`
-	Discount float32 `json:"discount"`
-}
-
-type ProductRequest struct {
-	Price    float32 `json:"price"`
-	Discount float32 `json:"discount"`
-}
-
-var products []Product
+var products []models.Product
 
 func AddMockUpData() {
-	products = append(products, Product{
+	products = append(products, models.Product{
 		ID:       1,
 		Name:     "cc_item_health",
 		Price:    500,
 		Discount: 10,
 	})
 
-	products = append(products, Product{
+	products = append(products, models.Product{
 		ID:       2,
 		Name:     "cc_target_farm",
 		Price:    900,
@@ -42,7 +31,7 @@ func AddMockUpData() {
 // @Tags Products
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} Product
+// @Success 200 {array} models.Product
 // @Router /products [get]
 func GetProducts(c *fiber.Ctx) error {
 	return c.JSON(products)
@@ -55,7 +44,7 @@ func GetProducts(c *fiber.Ctx) error {
 // @Tags Products
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
 func GetProduct(ctx *fiber.Ctx) error {
@@ -108,17 +97,17 @@ func DeleteProduct(ctx *fiber.Ctx) error {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products/{productId} [put]
 // @Param productId path int true "Product id"
-// @Param json body ProductRequest true "Product detail"
+// @Param json body models.ProductRequest true "Product detail"
 func UpdateProduct(ctx *fiber.Ctx) error {
 	productId, err := strconv.Atoi(ctx.Params("id"))
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	productUpdate := new(ProductRequest)
+	productUpdate := new(models.ProductRequest)
 	if err := ctx.BodyParser(productUpdate); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -142,11 +131,11 @@ func UpdateProduct(ctx *fiber.Ctx) error {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products [post]
-// @Param json body Product true "Product detail"
+// @Param json body models.Product true "Product detail"
 func CreateProduct(ctx *fiber.Ctx) error {
-	productNew := new(Product)
+	productNew := new(models.Product)
 	if err := ctx.BodyParser(productNew); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
