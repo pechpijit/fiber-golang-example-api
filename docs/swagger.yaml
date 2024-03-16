@@ -1,6 +1,13 @@
 basePath: /
 definitions:
-  main.Product:
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.Product:
     properties:
       discount:
         type: number
@@ -11,19 +18,12 @@ definitions:
       price:
         type: number
     type: object
-  main.ProductRequest:
+  models.ProductRequest:
     properties:
       discount:
         type: number
       price:
         type: number
-    type: object
-  main.User:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
     type: object
 host: localhost:3000
 info:
@@ -43,7 +43,7 @@ paths:
         name: json
         required: true
         schema:
-          $ref: '#/definitions/main.User'
+          $ref: '#/definitions/models.LoginRequest'
       produces:
       - application/json
       responses:
@@ -64,7 +64,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/main.Product'
+              $ref: '#/definitions/models.Product'
             type: array
       summary: Get all products
       tags:
@@ -79,14 +79,14 @@ paths:
         name: json
         required: true
         schema:
-          $ref: '#/definitions/main.Product'
+          $ref: '#/definitions/models.Product'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Product'
+            $ref: '#/definitions/models.Product'
       security:
       - ApiKeyAuth: []
       summary: Create product
@@ -129,7 +129,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Product'
+            $ref: '#/definitions/models.Product'
       summary: Get product by id
       tags:
       - Products
@@ -148,14 +148,14 @@ paths:
         name: json
         required: true
         schema:
-          $ref: '#/definitions/main.ProductRequest'
+          $ref: '#/definitions/models.ProductRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Product'
+            $ref: '#/definitions/models.Product'
       security:
       - ApiKeyAuth: []
       summary: Update product
