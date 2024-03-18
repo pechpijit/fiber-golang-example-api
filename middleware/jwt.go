@@ -10,7 +10,7 @@ import (
 
 func JWTProtected() func(ctx *fiber.Ctx) error {
 	config := jwtware.Config{
-		SigningKey:   jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
+		SigningKey:   jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET_KEY"))},
 		ContextKey:   "jwt",
 		ErrorHandler: jwtError,
 	}

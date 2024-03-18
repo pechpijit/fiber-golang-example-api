@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/joho/godotenv"
@@ -10,9 +9,8 @@ import (
 	"github.com/pechpijit/Fiber_golang_example_api/middleware"
 	"github.com/pechpijit/Fiber_golang_example_api/routes"
 	"github.com/pechpijit/Fiber_golang_example_api/routes/api/v1"
-	"github.com/pechpijit/Fiber_golang_example_api/service"
+	"github.com/pechpijit/Fiber_golang_example_api/utils"
 	"log"
-	"os"
 )
 
 // @title Fiber Example API
@@ -35,7 +33,6 @@ func main() {
 		log.Fatal("Error load .env file", err)
 	}
 
-	service.AddMockUpData()
 	app.Get("/metrics", monitor.New())
 
 	routesApiV1.ProductRouter(v1)
@@ -44,11 +41,8 @@ func main() {
 	routes.SwaggerRoute(app)
 	routes.NotFoundRoute(app)
 
-	err := app.Listen(fmt.Sprintf(
-		"%s:%s",
-		os.Getenv("SERVER_HOST"),
-		os.Getenv("SERVER_PORT"),
-	))
+	fiberURL, _ := utils.ConnectionURLBuilder("fiber")
+	err := app.Listen(fiberURL)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,28 +1,16 @@
 package service
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/pechpijit/Fiber_golang_example_api/database"
 	"github.com/pechpijit/Fiber_golang_example_api/models"
-	"strconv"
+	"log"
 )
 
 var products []models.Product
-
-func AddMockUpData() {
-	products = append(products, models.Product{
-		ID:       1,
-		Name:     "cc_item_health",
-		Price:    500,
-		Discount: 10,
-	})
-
-	products = append(products, models.Product{
-		ID:       2,
-		Name:     "cc_target_farm",
-		Price:    900,
-		Discount: 15,
-	})
-}
 
 // Handler functions
 // GetProducts godoc
@@ -33,8 +21,19 @@ func AddMockUpData() {
 // @Produce  json
 // @Success 200 {array} models.Product
 // @Router /products [get]
-func GetProducts(c *fiber.Ctx) error {
-	return c.JSON(products)
+func GetProducts(ctx *fiber.Ctx) error {
+	db, _ := database.OpenDBConnection()
+	db, errInitDb := database.OpenDBConnection()
+	if errInitDb != nil {
+		log.Fatal("could not load database", errInitDb.Error())
+	}
+
+	products, err := db.GetProducts()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return ctx.JSON(products)
 }
 
 // Handler functions
@@ -48,18 +47,22 @@ func GetProducts(c *fiber.Ctx) error {
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
 func GetProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
+	productId := ctx.Params("id")
+
+	db, errInitDb := database.OpenDBConnection()
+	if errInitDb != nil {
+		log.Fatal("could not load database", errInitDb.Error())
+	}
+
+	product, err := db.GetProduct(productId)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
-	for _, product := range products {
-		if product.ID == productId {
-			return ctx.JSON(product)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ctx.Status(fiber.StatusNotFound).SendString("Product not found")
 		}
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return ctx.SendStatus(fiber.StatusNotFound)
+	return ctx.JSON(product)
 }
 
 // Handler functions
@@ -74,10 +77,7 @@ func GetProduct(ctx *fiber.Ctx) error {
 // @Router /products/{productId} [delete]
 // @Param productId path int true "Product id"
 func DeleteProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
+	productId := ctx.Params("id")
 
 	for i, product := range products {
 		if product.ID == productId {
@@ -102,22 +102,30 @@ func DeleteProduct(ctx *fiber.Ctx) error {
 // @Param productId path int true "Product id"
 // @Param json body models.ProductRequest true "Product detail"
 func UpdateProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
+	productId := ctx.Params("id")
 
 	productUpdate := new(models.ProductRequest)
 	if err := ctx.BodyParser(productUpdate); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	for i, product := range products {
-		if product.ID == productId {
-			products[i].Price = productUpdate.Price
-			products[i].Discount = productUpdate.Discount
-			return ctx.JSON(products[i])
+	db, errInitDb := database.OpenDBConnection()
+	if errInitDb != nil {
+		log.Fatal("could not load database", errInitDb.Error())
+	}
+
+	_, errGetProduct := db.GetProduct(productId)
+	if errGetProduct != nil {
+		if errors.Is(errGetProduct, sql.ErrNoRows) {
+			return ctx.Status(fiber.StatusNotFound).SendString("Product not found")
 		}
+		return ctx.Status(fiber.StatusInternalServerError).SendString(errGetProduct.Error())
+	}
+
+	err := db.UpdateProduct(productUpdate, productId)
+	if err == nil {
+		product, _ := db.GetProduct(productId)
+		return ctx.JSON(product)
 	}
 
 	return ctx.SendStatus(fiber.StatusNotFound)
@@ -140,13 +148,17 @@ func CreateProduct(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	for _, product := range products {
-		if product.ID == productNew.ID {
-			return ctx.SendStatus(fiber.StatusUnprocessableEntity)
-		}
+	productNew.ID = uuid.New().String()
+
+	db, errInitDb := database.OpenDBConnection()
+	if errInitDb != nil {
+		log.Fatal("could not load database", errInitDb.Error())
 	}
 
-	products = append(products, *productNew)
+	err := db.CreateProduct(ctx, productNew)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(productNew)
 }

@@ -44,7 +44,7 @@ func Login(ctx *fiber.Ctx) error {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
