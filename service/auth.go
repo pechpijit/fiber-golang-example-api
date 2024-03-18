@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pechpijit/Fiber_golang_example_api/models"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -36,10 +37,15 @@ func Login(ctx *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
+	minutesCount, err := strconv.Atoi(os.Getenv("JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT"))
+	if err != nil || minutesCount <= 0 {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
 	claims := jwt.MapClaims{
 		"email": memberUser.Email,
 		"role":  "admin",
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"exp":   time.Now().Add(time.Minute * time.Duration(minutesCount)).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
