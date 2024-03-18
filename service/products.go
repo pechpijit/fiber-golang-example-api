@@ -2,22 +2,22 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/pechpijit/Fiber_golang_example_api/models"
-	"strconv"
 )
 
 var products []models.Product
 
 func AddMockUpData() {
 	products = append(products, models.Product{
-		ID:       1,
+		ID:       uuid.NewString(),
 		Name:     "cc_item_health",
 		Price:    500,
 		Discount: 10,
 	})
 
 	products = append(products, models.Product{
-		ID:       2,
+		ID:       uuid.NewString(),
 		Name:     "cc_target_farm",
 		Price:    900,
 		Discount: 15,
@@ -48,11 +48,7 @@ func GetProducts(c *fiber.Ctx) error {
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
 func GetProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
+	productId := ctx.Params("id")
 	for _, product := range products {
 		if product.ID == productId {
 			return ctx.JSON(product)
@@ -74,11 +70,7 @@ func GetProduct(ctx *fiber.Ctx) error {
 // @Router /products/{productId} [delete]
 // @Param productId path int true "Product id"
 func DeleteProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
+	productId := ctx.Params("id")
 	for i, product := range products {
 		if product.ID == productId {
 			products = append(products[:i], products[i+1:]...)
@@ -102,11 +94,7 @@ func DeleteProduct(ctx *fiber.Ctx) error {
 // @Param productId path int true "Product id"
 // @Param json body models.ProductRequest true "Product detail"
 func UpdateProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
+	productId := ctx.Params("id")
 	productUpdate := new(models.ProductRequest)
 	if err := ctx.BodyParser(productUpdate); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
@@ -146,6 +134,7 @@ func CreateProduct(ctx *fiber.Ctx) error {
 		}
 	}
 
+	productNew.ID = uuid.NewString()
 	products = append(products, *productNew)
 
 	return ctx.Status(fiber.StatusCreated).JSON(productNew)
