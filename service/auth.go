@@ -3,11 +3,9 @@ package service
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/pechpijit/Fiber_golang_example_api/models"
-	"os"
-	"strconv"
-	"time"
+	"github.com/pechpijit/Fiber_golang_example_api/response"
+	"github.com/pechpijit/Fiber_golang_example_api/utils"
 )
 
 var memberUser = models.LoginRequest{
@@ -28,7 +26,8 @@ var memberUser = models.LoginRequest{
 func Login(ctx *fiber.Ctx) error {
 	loginInfo := new(models.LoginRequest)
 	if err := ctx.BodyParser(loginInfo); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return response.RespondError(ctx, fiber.StatusBadRequest, err.Error())
+
 	}
 
 	fmt.Printf("%s | %s", loginInfo.Email, loginInfo.Password)
@@ -37,22 +36,9 @@ func Login(ctx *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
-	minutesCount, err := strconv.Atoi(os.Getenv("JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT"))
-	if err != nil || minutesCount <= 0 {
-		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
-	}
-
-	claims := jwt.MapClaims{
-		"email": memberUser.Email,
-		"role":  "admin",
-		"exp":   time.Now().Add(time.Minute * time.Duration(minutesCount)).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	t, err := utils.GenerateNewTokens(memberUser.Email)
 	if err != nil {
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return response.RespondError(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
 	return ctx.JSON(fiber.Map{

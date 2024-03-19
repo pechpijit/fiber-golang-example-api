@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pechpijit/Fiber_golang_example_api/response"
 	"os"
+	"time"
 )
 
 func JWTProtected() func(ctx *fiber.Ctx) error {
@@ -18,13 +19,22 @@ func JWTProtected() func(ctx *fiber.Ctx) error {
 	return jwtware.New(config)
 }
 
-func JWTCheckRule(ctx *fiber.Ctx) error {
+func JWTCheckPermission(ctx *fiber.Ctx, need *string) bool {
 	user := ctx.Locals("jwt").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
-	role := claims["role"].(string)
 
-	if role != "admin" {
-		return fiber.ErrUnauthorized
+	return claims[*need].(bool)
+}
+
+func JWTCheckExpire(ctx *fiber.Ctx) error {
+	user := ctx.Locals("jwt").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+
+	expiresAccessToken := int64(claims["expires"].(float64))
+
+	now := time.Now().Unix()
+	if now > expiresAccessToken {
+		return response.RespondError(ctx, fiber.StatusUnauthorized, "unauthorized or expired token")
 	}
 
 	return ctx.Next()

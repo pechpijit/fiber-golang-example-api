@@ -11,7 +11,7 @@ func ProductRouter(app fiber.Router) {
 
 	productGroup.Get("/", service.GetProducts)
 	productGroup.Get("/:id", service.GetProduct)
-	productGroup.Post("/", middleware.JWTProtected(), middleware.JWTCheckRule, service.CreateProduct)
-	productGroup.Put("/:id", middleware.JWTProtected(), middleware.JWTCheckRule, service.UpdateProduct)
-	productGroup.Delete("/:id", middleware.JWTProtected(), middleware.JWTCheckRule, service.DeleteProduct)
+	productGroup.Post("/", middleware.JWTProtected(), middleware.JWTCheckExpire, service.CreateProduct)
+	productGroup.Put("/:id", middleware.JWTProtected(), middleware.JWTCheckExpire, service.UpdateProduct)
+	productGroup.Delete("/:id", middleware.JWTProtected(), middleware.JWTCheckExpire, service.DeleteProduct)
 }
