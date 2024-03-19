@@ -46,7 +46,7 @@ func GetProducts(ctx *fiber.Ctx) error {
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
 func GetProduct(ctx *fiber.Ctx) error {
-	productId := ctx.Params("id")
+	productId := utils.CopyString(ctx.Params("id"))
 
 	db, errInitDb := database.OpenDBConnection()
 	if errInitDb != nil {
@@ -104,7 +104,7 @@ func DeleteProduct(ctx *fiber.Ctx) error {
 // @Param productId path int true "Product id"
 // @Param json body models.ProductRequest true "Product detail"
 func UpdateProduct(ctx *fiber.Ctx) error {
-	productId := ctx.Params("id")
+	productId := utils.CopyString(ctx.Params("id"))
 
 	productUpdate := new(models.ProductRequest)
 	if err := ctx.BodyParser(productUpdate); err != nil {
