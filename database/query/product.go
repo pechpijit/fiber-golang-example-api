@@ -31,6 +31,10 @@ func (db *ProductQuery) GetProducts() ([]models.Product, error) {
 		return nil, err
 	}
 
+	if products == nil {
+		products = []models.Product{}
+	}
+
 	return products, nil
 }
 
@@ -50,5 +54,10 @@ func (db *ProductQuery) CreateProduct(ctx *fiber.Ctx, productNew *models.Product
 
 func (db *ProductQuery) UpdateProduct(productUpdate *models.ProductRequest, productId string) error {
 	_, err := db.Exec("UPDATE products_table SET price = $1, discount = $2 WHERE id = $3", productUpdate.Price, productUpdate.Discount, productId)
+	return err
+}
+
+func (db *ProductQuery) DeleteProduct(productId string) error {
+	_, err := db.Exec("DELETE FROM products_table WHERE id = $1", productId)
 	return err
 }

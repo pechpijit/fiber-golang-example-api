@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/google/uuid"
 	"github.com/pechpijit/Fiber_golang_example_api/database"
 	"github.com/pechpijit/Fiber_golang_example_api/models"
 	"log"
 )
-
-var products []models.Product
 
 // Handler functions
 // GetProducts godoc
@@ -77,16 +76,19 @@ func GetProduct(ctx *fiber.Ctx) error {
 // @Router /products/{productId} [delete]
 // @Param productId path int true "Product id"
 func DeleteProduct(ctx *fiber.Ctx) error {
-	productId := ctx.Params("id")
+	productId := utils.CopyString(ctx.Params("id"))
 
-	for i, product := range products {
-		if product.ID == productId {
-			products = append(products[:i], products[i+1:]...)
-			return ctx.SendStatus(fiber.StatusNoContent)
-		}
+	db, errInitDb := database.OpenDBConnection()
+	if errInitDb != nil {
+		log.Fatal("could not load database", errInitDb.Error())
 	}
 
-	return ctx.SendStatus(fiber.StatusNotFound)
+	err := db.DeleteProduct(productId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
 // Handler functions
