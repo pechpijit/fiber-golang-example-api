@@ -1,53 +1,54 @@
-package main
+package service
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"strconv"
+	"github.com/google/uuid"
+	"github.com/pechpijit/Fiber_golang_example_api/models"
 )
 
-type Product struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Price    float32 `json:"price"`
-	Discount float32 `json:"discount"`
-}
+var products []models.Product
 
-type ProductRequest struct {
-	Price    float32 `json:"price"`
-	Discount float32 `json:"discount"`
-}
+func AddMockUpData() {
+	products = append(products, models.Product{
+		ID:       uuid.NewString(),
+		Name:     "cc_item_health",
+		Price:    500,
+		Discount: 10,
+	})
 
-var products []Product
+	products = append(products, models.Product{
+		ID:       uuid.NewString(),
+		Name:     "cc_target_farm",
+		Price:    900,
+		Discount: 15,
+	})
+}
 
 // Handler functions
-// getProducts godoc
+// GetProducts godoc
 // @Summary Get all products
 // @Description Get details of all products
 // @Tags Products
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} Product
+// @Success 200 {array} models.Product
 // @Router /products [get]
-func getProducts(c *fiber.Ctx) error {
+func GetProducts(c *fiber.Ctx) error {
 	return c.JSON(products)
 }
 
 // Handler functions
-// getProduct godoc
+// GetProduct godoc
 // @Summary Get product by id
 // @Description Get details of product
 // @Tags Products
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products/{productId} [get]
 // @Param productId path int true "Product id"
-func getProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
+func GetProduct(ctx *fiber.Ctx) error {
+	productId := ctx.Params("id")
 	for _, product := range products {
 		if product.ID == productId {
 			return ctx.JSON(product)
@@ -58,7 +59,7 @@ func getProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// deleteProduct godoc
+// DeleteProduct godoc
 // @Summary Update product
 // @Description Update details of product
 // @Tags Products
@@ -68,12 +69,8 @@ func getProduct(ctx *fiber.Ctx) error {
 // @Success 204
 // @Router /products/{productId} [delete]
 // @Param productId path int true "Product id"
-func deleteProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
+func DeleteProduct(ctx *fiber.Ctx) error {
+	productId := ctx.Params("id")
 	for i, product := range products {
 		if product.ID == productId {
 			products = append(products[:i], products[i+1:]...)
@@ -85,24 +82,20 @@ func deleteProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// updateProduct godoc
+// UpdateProduct godoc
 // @Summary Update product
 // @Description Update details of product
 // @Tags Products
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products/{productId} [put]
 // @Param productId path int true "Product id"
-// @Param json body ProductRequest true "Product detail"
-func updateProduct(ctx *fiber.Ctx) error {
-	productId, err := strconv.Atoi(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
-	productUpdate := new(ProductRequest)
+// @Param json body models.ProductRequest true "Product detail"
+func UpdateProduct(ctx *fiber.Ctx) error {
+	productId := ctx.Params("id")
+	productUpdate := new(models.ProductRequest)
 	if err := ctx.BodyParser(productUpdate); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -119,18 +112,18 @@ func updateProduct(ctx *fiber.Ctx) error {
 }
 
 // Handler functions
-// createProduct godoc
+// CreateProduct godoc
 // @Summary Create product
 // @Description Create details of product
 // @Tags Products
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} Product
+// @Success 200 {object} models.Product
 // @Router /products [post]
-// @Param json body Product true "Product detail"
-func createProduct(ctx *fiber.Ctx) error {
-	productNew := new(Product)
+// @Param json body models.Product true "Product detail"
+func CreateProduct(ctx *fiber.Ctx) error {
+	productNew := new(models.Product)
 	if err := ctx.BodyParser(productNew); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -141,6 +134,7 @@ func createProduct(ctx *fiber.Ctx) error {
 		}
 	}
 
+	productNew.ID = uuid.NewString()
 	products = append(products, *productNew)
 
 	return ctx.Status(fiber.StatusCreated).JSON(productNew)
